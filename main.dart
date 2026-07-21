@@ -1,17 +1,11 @@
 import 'dart:io';
 
-class Pessoa {
-  String _nome = '';
+// 1. Classe IMC contendo os dados de Peso e Altura (conforme o checklist)
+class IMC {
   double _peso = 0.0;
   double _altura = 0.0;
 
-  Pessoa(this._nome, this._peso, this._altura);
-
-  String get nome => _nome;
-  set nome(String nome) {
-    if (nome.trim().isEmpty) throw Exception("O nome não pode estar vazio.");
-    _nome = nome;
-  }
+  IMC(this._peso, this._altura);
 
   double get peso => _peso;
   set peso(double peso) {
@@ -24,8 +18,31 @@ class Pessoa {
     if (altura <= 0) throw Exception("A altura deve ser maior que zero.");
     _altura = altura;
   }
+
+  // Método para calcular o IMC
+  double calcular() => _peso / (_altura * _altura);
+
+  // Método para obter a classificação
+  String obterClassificacao() {
+    double imc = calcular();
+    if (imc < 18.5) return "Magreza";
+    if (imc < 25) return "Saudável (Peso normal)";
+    if (imc < 30) return "Sobrepeso";
+    if (imc < 35) return "Obesidade Grau I";
+    if (imc < 40) return "Obesidade Grau II (severa)";
+    return "Obesidade Grau III (mórbida)";
+  }
 }
 
+// Classe auxiliar para armazenar os dados completos do registro para a lista
+class RegistroIMC {
+  String nome;
+  IMC dadosImc;
+
+  RegistroIMC(this.nome, this.dadosImc);
+}
+
+// 2. Funções auxiliares de leitura
 String lerString(String mensagem) {
   stdout.write(mensagem);
   String? entrada = stdin.readLineSync();
@@ -53,32 +70,58 @@ double lerDouble(String mensagem) {
   }
 }
 
-double calcularIMC(double peso, double altura) => peso / (altura * altura);
+// 3. Função principal com suporte a lista e múltiplos cadastros
+void main() {
+  print("=== Calculadora de IMC (Múltiplos Registros) ===");
+  List<RegistroIMC> registros = [];
 
-String obterClassificacaoIMC(double imc) {
-  if (imc < 18.5) return "Magreza";
-  if (imc < 25) return "Saudável (Peso normal)";
-  if (imc < 30) return "Sobrepeso";
-  if (imc < 35) return "Obesidade Grau I";
-  if (imc < 40) return "Obesidade Grau II (severa)";
-  return "Obesidade Grau III (mórbida)";
-}
+  bool continuar = true;
 
-void main(List<String> arguments) {
-  print("=== Calculadora de IMC ===");
-  try {
-    String nome = lerString("Digite seu nome: ");
-    double peso = lerDouble("Digite seu peso em kg: ");
-    double altura = lerDouble("Digite sua altura em metros: ");
+  while (continuar) {
+    try {
+      print("\n--- Novo Cadastro ---");
+      String nome = lerString("Digite o nome: ");
+      double peso = lerDouble("Digite o peso em kg: ");
+      double altura = lerDouble("Digite a altura em metros: ");
 
-    Pessoa pessoa = Pessoa(nome, peso, altura);
-    double imc = calcularIMC(pessoa.peso, pessoa.altura);
+      // Criando os objetos conforme o padrão OOP solicitado
+      IMC dadosImc = IMC(peso, altura);
+      RegistroIMC registro = RegistroIMC(nome, dadosImc);
 
-    print("\n--- Resultado ---");
-    print("Nome: ${pessoa.nome}");
-    print("IMC: ${imc.toStringAsFixed(2)}");
-    print("Classificação: ${obterClassificacaoIMC(imc)}");
-  } catch (e) {
-    print("Ocorreu um erro: $e");
+      // Adicionando à lista
+      registros.add(registro);
+
+      print("\nRegistro adicionado com sucesso!");
+
+      String resposta = lerString("Deseja cadastrar outra pessoa? (s/n): ");
+      if (resposta.toLowerCase() != 's') {
+        continuar = false;
+      }
+    } catch (e) {
+      print("Ocorreu um erro: $e");
+    }
+  }
+
+  // Exibindo todos os resultados em formato de lista
+  print("\n========================================");
+  print("          LISTA DE RESULTADOS           ");
+  print("======================================2==");
+
+  if (registros.isEmpty) {
+    print("Nenhum registro encontrado.");
+  } else {
+    for (int i = 0; i < registros.length; i++) {
+      var reg = registros[i];
+      double valorImc = reg.dadosImc.calcular();
+      String classificacao = reg.dadosImc.obterClassificacao();
+
+      print("\n[%d] Nome: ${reg.nome}".replaceFirst('%d', '${i + 1}'));
+      print(
+        "    Peso: ${reg.dadosImc.peso} kg | Altura: ${reg.dadosImc.altura} m",
+      );
+      print("    IMC: ${valorImc.toStringAsFixed(2)}");
+      print("    Classificação: $classificacao");
+      print("-" * 40);
+    }
   }
 }
